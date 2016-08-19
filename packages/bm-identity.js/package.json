@@ -1,0 +1,38 @@
+{
+  "name": "@blinkmobile/bm-identity",
+  "description": “Helper functions for Blink Mobiles single identity”,
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint": "eslint --fix --cache .",
+    "flow_check": "flow check || exit 0",
+    "fixpack": "fixpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blinkmobile/bm-identity.js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/blinkmobile/bm-identity.js/issues"
+  },
+  "homepage": "https://github.com/blinkmobile/bm-identity.js#readme",
+  "engines": {
+    "node": ">=6",
+    "npm": ">=3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "eslint": "^3.3.1",
+    "eslint-config-standard": "^5.3.5",
+    "eslint-plugin-promise": "^2.0.1",
+    "eslint-plugin-standard": "^2.0.0",
+    "fixpack": "^2.3.1",
+    "flow-bin": "^0.30.0"
+  }
+}

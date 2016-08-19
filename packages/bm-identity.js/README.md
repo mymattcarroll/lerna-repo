@@ -1,1 +1,1 @@
-# bm-identity.js
+# bm-identity.js [![npm](https://img.shields.io/npm/v/@blinkmobile/bm-identity.svg?maxAge=2592000)](https://www.npmjs.com/package/@blinkmobile/bm-identity) [![AppVeyor Status](https://ci.appveyor.com/api/projects/status/github/blinkmobile/bm-identity.js?branch=master&svg=true)](https://ci.appveyor.com/project/blinkmobile/bm-identity.js) [![Travis CI Status](https://travis-ci.org/blinkmobile/bm-identity.js.svg?branch=master)](https://travis-ci.org/blinkmobile/bm-identity.js)

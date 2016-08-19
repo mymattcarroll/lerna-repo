@@ -1,20 +1,23 @@
 {
   "name": "@blinkmobile/bm-identity",
-  "description": “Helper functions for Blink Mobiles single identity”,
+  "description": "Helper functions for Blink Mobiles single identity",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "ava": "ava",
     "eslint": "eslint --fix --cache .",
     "flow_check": "flow check || exit 0",
-    "fixpack": "fixpack"
+    "fixpack": "fixpack",
+    "lint": "eslint .",
+    "make-docs": "jsdoc index.js ./lib ./commands -d ./jsdocs",
+    "test": "npm-run-all lint ava"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/blinkmobile/bm-identity.js.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Matt Carroll",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/blinkmobile/bm-identity.js/issues"
@@ -28,11 +31,17 @@
     "access": "public"
   },
   "devDependencies": {
+    "ava": "^0.15.2",
     "eslint": "^3.3.1",
+    "eslint-config-semistandard": "^6.0.2",
     "eslint-config-standard": "^5.3.5",
     "eslint-plugin-promise": "^2.0.1",
     "eslint-plugin-standard": "^2.0.0",
     "fixpack": "^2.3.1",
-    "flow-bin": "^0.30.0"
+    "flow-bin": "^0.30.0",
+    "jsdoc": "^3.4.0",
+    "mockery": "^1.4.1",
+    "npm-run-all": "^2.2.2",
+    "yauzl": "^2.6.0"
   }
 }

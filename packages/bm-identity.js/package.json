@@ -9,7 +9,7 @@
     "flow_check": "flow check || exit 0",
     "fixpack": "fixpack",
     "lint": "eslint .",
-    "make-docs": "jsdoc index.js ./lib ./commands -d ./jsdocs",
+    "make-docs": "jsdoc index.js ./lib -r -d ./jsdocs",
     "test": "npm-run-all lint ava"
   },
   "repository": {
@@ -30,6 +30,15 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "@blinkmobile/blinkmrc": "1.1.0",
+    "aws-sdk": "^2.3.10",
+    "base64url": "^2.0.0",
+    "inquirer": "^1.0.3",
+    "lodash": "^4.15.0",
+    "opn": "^4.0.2",
+    "request": "^2.74.0"
+  },
   "devDependencies": {
     "ava": "^0.15.2",
     "eslint": "^3.3.1",
@@ -42,6 +51,7 @@
     "jsdoc": "^3.4.0",
     "mockery": "^1.4.1",
     "npm-run-all": "^2.2.2",
+    "proxyquire": "^1.7.10",
     "yauzl": "^2.6.0"
   }
 }

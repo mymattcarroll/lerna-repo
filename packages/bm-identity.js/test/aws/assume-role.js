@@ -3,61 +3,48 @@
 const test = require('ava');
 const proxyquire = require('proxyquire');
 
-const profileMock = require('../helpers/profile.js');
-const awsMock = require('../helpers/aws-sdk.js');
+const requestMock = require('../helpers/request.js');
+const auth0ClientFactoryMock = require('../helpers/auth0-client-factory.js');
 
 const TEST_SUBJECT = '../../lib/aws/assume-role.js';
+const constants = require('../../lib/constants.js');
 
 const ACCESS_KEY_ID = 'valid access key id';
 const SECRET_ACCESS_KEY = 'valid secret access key';
 const SESSION_TOKEN = 'valid session token';
 const CLIENT_NAME = 'valid client name';
+const CLIENT_ID = 'valid client id';
 const JWT = 'a valid jwt';
-const PROFILE = {
-  name: 'FirstName LastName',
-  awsRoles: {
-    cliRole: 'valid aws role ARN'
+const RESPONSE = {
+  Credentials: {
+    AccessKeyId: ACCESS_KEY_ID,
+    SecretAccessKey: SECRET_ACCESS_KEY,
+    SessionToken: SESSION_TOKEN
   }
-};
-const getRoleParams = (profile) => {
-  return {
-    RoleArn: profile.awsRoles.cliRole,
-    RoleSessionName: `Temp-CLI-User-${profile.name}`
-  };
 };
 
 test.beforeEach((t) => {
-  t.context.profile = profileMock((jwt) => {
-    return Promise.resolve(PROFILE);
-  });
-
   t.context.getJWT = (clientName) => {
     return Promise.resolve(JWT);
   };
 
-  t.context.AWS = awsMock((roleParams, callback) => {
-    callback(null, {
-      Credentials: {
-        AccessKeyId: ACCESS_KEY_ID,
-        SecretAccessKey: SECRET_ACCESS_KEY,
-        SessionToken: SESSION_TOKEN
-      }
-    });
+  t.context.auth0ClientFactory = auth0ClientFactoryMock(() => {
+    return Promise.resolve(CLIENT_ID);
   });
 
-  t.context.getAWSRoleParams = (profile, callback) => {
-    callback(null, getRoleParams(profile));
-  };
+  t.context.request = requestMock((url, data, callback) => {
+    callback(null, {}, RESPONSE);
+  });
 });
 
 test.cb('assumeRole() should return valid aws credentials', (t) => {
   const assumeRole = proxyquire(TEST_SUBJECT, {
-    'aws-sdk': t.context.AWS,
-    '../auth0/profile.js': t.context.profile,
+    'request': t.context.request,
+    '../auth0/client-factory.js': t.context.auth0ClientFactory,
     '../utils/get-jwt.js': t.context.getJWT
   });
 
-  assumeRole(CLIENT_NAME, t.context.getAWSRoleParams)
+  assumeRole(CLIENT_NAME)
     .then((assumedRole) => {
       t.deepEqual(assumedRole, {
         accessKeyId: ACCESS_KEY_ID,
@@ -74,8 +61,8 @@ test.cb('assumeRole() should return valid aws credentials', (t) => {
 
 test.cb('assumeRole() should call getJwt() to get access token with clientName', (t) => {
   const assumeRole = proxyquire(TEST_SUBJECT, {
-    'aws-sdk': t.context.AWS,
-    '../auth0/profile.js': t.context.profile,
+    'request': t.context.request,
+    '../auth0/client-factory.js': t.context.auth0ClientFactory,
     '../utils/get-jwt.js': (clientName) => {
       t.is(clientName, CLIENT_NAME);
       t.end();
@@ -83,7 +70,25 @@ test.cb('assumeRole() should call getJwt() to get access token with clientName',
     }
   });
 
-  assumeRole(CLIENT_NAME, t.context.getAWSRoleParams)
+  assumeRole(CLIENT_NAME)
+    .catch((error) => {
+      t.fail(error);
+      t.end();
+    });
+});
+
+test.cb('assumeRole() should call getClientIdByName() to get client id with clientName', (t) => {
+  const assumeRole = proxyquire(TEST_SUBJECT, {
+    'request': t.context.request,
+    '../auth0/client-factory.js': auth0ClientFactoryMock((clientName) => {
+      t.is(clientName, CLIENT_NAME);
+      t.end();
+      return Promise.resolve(CLIENT_ID);
+    }),
+    '../utils/get-jwt.js': t.context.getJWT
+  });
+
+  assumeRole(CLIENT_NAME)
     .catch((error) => {
       t.fail(error);
       t.end();
@@ -92,14 +97,14 @@ test.cb('assumeRole() should call getJwt() to get access token with clientName',
 
 test.cb('assumeRole() should reject if a jwt is not found from getJwt()', (t) => {
   const assumeRole = proxyquire(TEST_SUBJECT, {
-    'aws-sdk': t.context.AWS,
-    '../auth0/profile.js': t.context.profile,
+    'request': t.context.request,
+    '../auth0/client-factory.js': t.context.auth0ClientFactory,
     '../utils/get-jwt.js': (clientName) => {
       return Promise.resolve();
     }
   });
 
-  assumeRole(CLIENT_NAME, t.context.getAWSRoleParams)
+  assumeRole(CLIENT_NAME)
     .then(() => {
       t.fail();
       t.end();
@@ -110,108 +115,95 @@ test.cb('assumeRole() should reject if a jwt is not found from getJwt()', (t) =>
     });
 });
 
-test.cb('assumeRole() should call profile.getByJWT() with the jwt token returned from getJwt()', (t) => {
+test.cb('assumeRole() should call request with the correct data and additional parameters', (t) => {
   const assumeRole = proxyquire(TEST_SUBJECT, {
-    'aws-sdk': t.context.AWS,
-    '../auth0/profile.js': profileMock((jwt) => {
-      t.is(jwt, JWT);
+    'request': requestMock((url, data, callback) => {
+      t.is(url, `${constants.AUTH0_URL}/delegation`);
+      t.deepEqual(data.json, {
+        client_id: CLIENT_ID,
+        id_token: JWT,
+        scope: 'openid',
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        api_type: 'aws',
+        clientName: CLIENT_NAME,
+        test: 'prop'
+      });
       t.end();
-      return Promise.resolve(PROFILE);
+      callback(null, {}, RESPONSE);
     }),
+    '../auth0/client-factory.js': t.context.auth0ClientFactory,
     '../utils/get-jwt.js': t.context.getJWT
   });
 
-  assumeRole(CLIENT_NAME, t.context.getAWSRoleParams)
+  assumeRole(CLIENT_NAME, { test: 'prop' })
     .catch((error) => {
       t.fail(error);
       t.end();
     });
 });
 
-test.cb('assumeRole() should call getAWSRoleParams with the profile returned from request', (t) => {
+test.cb('assumeRole() should reject if request returns an error', (t) => {
   const assumeRole = proxyquire(TEST_SUBJECT, {
-    'aws-sdk': t.context.AWS,
-    '../auth0/profile.js': t.context.profile,
-    '../utils/get-jwt.js': t.context.getJWT
-  });
-
-  assumeRole(CLIENT_NAME, (profile, callback) => {
-    t.deepEqual(profile, PROFILE);
-    t.end();
-    callback(null, {
-      RoleArn: profile.awsRoles.cliRole,
-      RoleSessionName: `Temp-CLI-User-${profile.name}`
-    });
-  })
-  .catch((error) => {
-    t.fail(error);
-    t.end();
-  });
-});
-
-test.cb('assumeRole() should reject if a getAWSRoleParams returns an error', (t) => {
-  const assumeRole = proxyquire(TEST_SUBJECT, {
-    'aws-sdk': t.context.AWS,
-    '../auth0/profile.js': t.context.profile,
-    '../utils/get-jwt.js': t.context.getJWT
-  });
-
-  assumeRole(CLIENT_NAME, (profile, callback) => {
-    callback('test error message');
-  })
-  .then(() => {
-    t.fail();
-    t.end();
-  })
-  .catch((error) => {
-    t.is('test error message', error);
-    t.end();
-  });
-});
-
-test.cb('assumeRole() should call assumeRoleWithWebIdentity with the role params returned from getAWSRoleParams', (t) => {
-  const assumeRole = proxyquire(TEST_SUBJECT, {
-    'aws-sdk': awsMock((roleParams, callback) => {
-      const testRoleParams = getRoleParams(PROFILE);
-      testRoleParams.WebIdentityToken = JWT;
-      testRoleParams.RoleSessionName = testRoleParams.RoleSessionName.replace(/\s+/g, '-');
-      t.deepEqual(roleParams, testRoleParams);
-      t.end();
-      callback(null, {
-        Credentials: {
-          AccessKeyId: ACCESS_KEY_ID,
-          SecretAccessKey: SECRET_ACCESS_KEY,
-          SessionToken: SESSION_TOKEN
-        }
-      });
-    }),
-    '../auth0/profile.js': t.context.profile,
-    '../utils/get-jwt.js': t.context.getJWT
-  });
-
-  assumeRole(CLIENT_NAME, t.context.getAWSRoleParams)
-    .catch((error) => {
-      t.is('test error message', error);
-      t.end();
-    });
-});
-
-test.cb('assumeRole() should reject if assumeRoleWithWebIdentity returns an error', (t) => {
-  const assumeRole = proxyquire(TEST_SUBJECT, {
-    'aws-sdk': awsMock((roleParams, callback) => {
+    'request': requestMock((url, data, callback) => {
       callback('test error message');
     }),
-    '../auth0/profile.js': t.context.profile,
+    '../auth0/client-factory.js': t.context.auth0ClientFactory,
     '../utils/get-jwt.js': t.context.getJWT
   });
 
-  assumeRole(CLIENT_NAME, t.context.getAWSRoleParams)
+  assumeRole(CLIENT_NAME)
     .then(() => {
       t.fail();
       t.end();
     })
     .catch((error) => {
       t.is('test error message', error);
+      t.end();
+    });
+});
+
+test.cb('assumeRole() should should reject with error if request returns an error in the body', (t) => {
+  const assumeRole = proxyquire(TEST_SUBJECT, {
+    'request': requestMock((url, data, callback) => {
+      callback(null, {}, {
+        error: 'error code',
+        error_description: 'test error message'
+      });
+    }),
+    '../auth0/client-factory.js': t.context.auth0ClientFactory,
+    '../utils/get-jwt.js': t.context.getJWT
+  });
+
+  assumeRole(CLIENT_NAME)
+    .then(() => {
+      t.fail();
+      t.end();
+    })
+    .catch((error) => {
+      t.is(error, 'error code: test error message');
+      t.end();
+    });
+});
+
+test.cb('assumeRole() should should reject with custom message if request returns an "jwt expired" error in the body', (t) => {
+  const assumeRole = proxyquire(TEST_SUBJECT, {
+    'request': requestMock((url, data, callback) => {
+      callback(null, {}, {
+        error: 'invalid',
+        error_description: 'jwt expired'
+      });
+    }),
+    '../auth0/client-factory.js': t.context.auth0ClientFactory,
+    '../utils/get-jwt.js': t.context.getJWT
+  });
+
+  assumeRole(CLIENT_NAME)
+    .then(() => {
+      t.fail();
+      t.end();
+    })
+    .catch((error) => {
+      t.is(error, 'Unauthorized, your access token has expired. Please use the login command to login again.');
       t.end();
     });
 });

@@ -59,11 +59,11 @@ class BlinkMobileIdentity {
 
   /**
    * Get temporary AWS role's credentials.
-   * @param {BlinkMobileIdentity~getAWSRoleParams} getAWSRoleParams - A function that gets the AWS roles params.
+   * @param {Object} Additional parameters to pass to the delegation endpoint.
    * @returns {Object} The AWS credentials.
    */
-  assumeAWSRole (getAWSRoleParams) {
-    return assumeRole(privateVars.get(this).clientName, getAWSRoleParams);
+  assumeAWSRole (additionalParameters) {
+    return assumeRole(privateVars.get(this).clientName, additionalParameters);
   }
 
   /**
@@ -74,12 +74,5 @@ class BlinkMobileIdentity {
     return profile.getByClient(privateVars.get(this).clientName);
   }
 }
-
-/**
- * The function used to get the AWS Role params for assuming a role.
- * @callback BlinkMobileIdentity~getAWSRoleParams
- * @param {Object} profile - The profile of the user
- * @returns {Object} The AWS Role params.
- */
 
 module.exports = BlinkMobileIdentity;

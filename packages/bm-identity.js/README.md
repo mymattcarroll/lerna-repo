@@ -59,7 +59,7 @@ blinkMobileIdentity.logout();
 #### Assume AWS Role
 
 ```js
-assumeAWSRole () => Promise{AssumedRoleCredentials}
+assumeAWSRole (additionalParameters: object) => Promise{AssumedRoleCredentials}
 ```
 
 ```js
@@ -69,6 +69,14 @@ interface AssumedRoleCredentials {
   sessionToken : String
 }
 ```
+
+#### Get Profile
+
+```js
+getProfile () => Promise{Auth0Profile}
+```
+
+See [Auth0 Profile Structure](https://auth0.com/docs/user-profile/user-profile-structure) for available properties. 
 
 ### 2. Extend Existing CLI
 

@@ -1,7 +1,7 @@
 {
   "name": "@blinkmobile/identity-cli",
   "description": "Helper functions for Blink Mobiles single identity",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "main": "index.js",
   "scripts": {
     "ava": "ava",

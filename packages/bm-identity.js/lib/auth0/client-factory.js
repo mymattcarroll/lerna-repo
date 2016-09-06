@@ -5,7 +5,8 @@
  */
 
 const request = require('request');
-
+  
+  
 /**
  * @function getClientIdByName
  * @param {String} clientName - The name of a Client.

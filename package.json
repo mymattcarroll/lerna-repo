@@ -1,5 +1,17 @@
 {
+  "name": "test",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
   "devDependencies": {
-    "lerna": "2.0.0-beta.26"
+    "lerna": "2.0.0-beta.26",
+    "eslint-config-semistandard": "^6.0.2",
+    "eslint-config-standard": "^5.3.5",
+    "eslint-plugin-promise": "^2.0.1",
+    "eslint-plugin-standard": "^2.0.0",
+    "jsdoc": "^3.4.0",
+    "mockery": "^1.4.1",
+    "proxyquire": "^1.7.10",
+    "yauzl": "^2.6.0"
   }
 }

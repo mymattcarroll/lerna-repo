@@ -30,14 +30,13 @@
   "publishConfig": {
     "access": "public"
   },
+  "bin": {
+    "blinkm-buildbot": "./bin/index.js"
+  },
   "dependencies": {
-    "@blinkmobile/blinkmrc": "1.1.0",
-    "aws-sdk": "^2.3.10",
-    "base64url": "^2.0.0",
-    "inquirer": "^1.0.3",
-    "lodash": "^4.15.0",
-    "opn": "^4.0.2",
-    "request": "^2.74.0"
+    "@blinkmobile/bm-identity": "1.2.0",
+    "meow": "^3.7.0",
+    "update-notifier": "^1.0.2"
   },
   "devDependencies": {
     "ava": "^0.15.2",

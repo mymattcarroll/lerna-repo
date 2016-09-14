@@ -4,9 +4,9 @@
  * @module auth0/client-factory
  */
 
-const request = require('request');
-  
-  
+const request = require('request');  
+
+
 /**
  * @function getClientIdByName
  * @param {String} clientName - The name of a Client.
